@@ -39,7 +39,7 @@ export class Company extends Model<CompanyAttributes, CompanyCreationAttributes>
   tin!: number;
 
   @ForeignKey(() => User)
-  @Column
+  @Column({ field: 'user_id' })
   userId!: number;
 
   @BelongsTo(() => User)

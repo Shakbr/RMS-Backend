@@ -20,6 +20,6 @@ export class WaybillUnit extends Model<WaybillUnitAttributes, WaybillUnitCreatio
   name!: string;
 
   @Unique
-  @Column
+  @Column({ field: 'unit_id' })
   unitId!: number;
 }

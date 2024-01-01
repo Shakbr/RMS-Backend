@@ -12,7 +12,7 @@ interface WaybillAttributes {
   quantity: number;
   price: number;
   amount: number;
-  barCode: string;
+  barcode: string;
   status: number;
 }
 
@@ -25,15 +25,15 @@ export class Waybill extends Model<WaybillAttributes, WaybillCreationAttributes>
   @Column
   id!: number;
 
-  @Column
+  @Column({ field: 'waybill_id' })
   waybillId!: string;
 
   @ForeignKey(() => Company)
-  @Column(DataType.BIGINT)
+  @Column({ field: 'tin_id', type: DataType.BIGINT })
   tinId!: number;
 
   @ForeignKey(() => WaybillUnit)
-  @Column
+  @Column({ field: 'unit_id' })
   unitId!: number;
 
   @Column
@@ -47,7 +47,7 @@ export class Waybill extends Model<WaybillAttributes, WaybillCreationAttributes>
 
   @ForeignKey(() => Product)
   @Column
-  barCode!: string;
+  barcode!: string;
 
   @Column
   status!: number;
@@ -55,7 +55,7 @@ export class Waybill extends Model<WaybillAttributes, WaybillCreationAttributes>
   @BelongsTo(() => Company, { targetKey: 'tin' })
   company: Company;
 
-  @BelongsTo(() => Product, { targetKey: 'barCode' })
+  @BelongsTo(() => Product, { targetKey: 'barcode' })
   product: Product;
 
   @BelongsTo(() => WaybillUnit, { targetKey: 'unitId' })

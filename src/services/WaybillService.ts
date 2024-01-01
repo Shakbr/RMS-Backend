@@ -42,23 +42,23 @@ export class WaybillService {
 
       // create a product if it doesn't exist
       const [product, created] = await Product.findOrCreate({
-        where: { barCode: String(waybillData.BAR_CODE) },
+        where: { barcode: String(waybillData.BAR_CODE) },
         defaults: {
-          barCode: waybillData.BAR_CODE,
+          barcode: waybillData.BAR_CODE,
           name: waybillData.W_NAME,
-          unitId: 99,
+          unitId: waybillData.UNIT_ID,
           price: waybillData.PRICE,
         },
       });
       // if the product was not created and the price is different, add a notification
       if (!created && product.price !== waybillData.PRICE) {
         // for now just log the notification
-        console.log(`Price for product ${product.barCode} has changed from ${product.price} to ${waybillData.PRICE}`);
+        console.log(`Price for product ${product.barcode} has changed from ${product.price} to ${waybillData.PRICE}`);
       }
 
       // create a waybill if it doesn't exist
       await Waybill.findOrCreate({
-        where: { waybillId: String(waybillData.WAYBILL_NUMBER), barCode: String(waybillData.BAR_CODE) },
+        where: { waybillId: String(waybillData.WAYBILL_NUMBER), barcode: String(waybillData.BAR_CODE) },
         defaults: {
           waybillId: String(waybillData.WAYBILL_NUMBER),
           tinId: waybillData.TIN,
@@ -66,7 +66,7 @@ export class WaybillService {
           quantity: waybillData.QUANTITY,
           price: waybillData.PRICE,
           amount: waybillData.AMOUNT,
-          barCode: String(waybillData.BAR_CODE),
+          barcode: String(waybillData.BAR_CODE),
           status: waybillData.STATUS,
         },
       });

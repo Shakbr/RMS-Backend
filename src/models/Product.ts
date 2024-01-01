@@ -10,11 +10,14 @@ import {
   BelongsTo,
   Unique,
   DataType,
+  BelongsToMany,
 } from 'sequelize-typescript';
+import { Cake } from './Cake';
+import { CakeIngredient } from './CakeIngredient';
 
 interface ProductAttributes {
   id: number;
-  barCode: string;
+  barcode: string;
   name: string;
   unitId: number;
   price: number;
@@ -31,7 +34,7 @@ export class Product extends Model<ProductAttributes, ProductCreationAttributes>
 
   @Unique
   @Column
-  barCode!: string;
+  barcode!: string;
 
   @Column
   name!: string;
@@ -40,9 +43,12 @@ export class Product extends Model<ProductAttributes, ProductCreationAttributes>
   price!: number;
 
   @ForeignKey(() => WaybillUnit)
-  @Column
+  @Column({ field: 'unit_id' })
   unitId!: number;
 
   @BelongsTo(() => WaybillUnit, { targetKey: 'unitId' })
   unit: WaybillUnit;
+
+  @BelongsToMany(() => Cake, () => CakeIngredient)
+  cakes: Cake[];
 }
