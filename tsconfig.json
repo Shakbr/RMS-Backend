@@ -6,6 +6,7 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    // "types": ["reflect-metadata"],
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "module": "commonjs",
@@ -29,10 +30,13 @@
       "@models/*": ["models/*"],
       "@routes/*": ["routes/*"],
       "@services/*": ["services/*"],
+      "@constants/*": ["constants/*"],
       "@types/*": ["types/*"],
+      "@interfaces/*": ["interfaces/*"],
       "@utils/*": ["utils/*"],
       "@testUtils/*": ["testUtils/*"],
-      "@validations/*": ["validations/*"],
+      "@validators/*": ["validators/*"],
+
     }
   },
   "include": ["src//**/*.ts", "src//*.json", ".env"],

@@ -1,24 +1,34 @@
+import { injectable, inject } from 'inversify';
 import { Request, Response, NextFunction } from 'express';
-import { User } from '../models/User';
-import { authenticateUser } from '../services/authService';
-import { ApiError } from '../errors/ApiError';
-import { asyncHandler } from '../helpers/asyncHandler';
-import { HttpStatus } from '@/utils/httpStatusCodesUtils';
+import { SERVICE_TYPES } from '@/types/services';
+import { HELPER_TYPES } from '@/types/helpers';
+import { HttpStatusCodeEnum } from '@/constants/HttpStatusCodeConstants';
+import { IUserController } from '@/interfaces/controllers/IUserController';
+import { IUserService } from '@/interfaces/services/IUserService';
+import { IAsyncHandlerHelper } from '@/interfaces/helpers/IAsyncHandlerHelper';
+import { UserDTO } from '@/models/User';
+import { IAuthenticateUser } from '@/interfaces/common/IAuth';
 
-export class UserController {
-  register = asyncHandler(async (req: Request, _res: Response, _next: NextFunction) => {
-    const { email, name, password, role } = req.body;
+@injectable()
+export class UserController implements IUserController {
+  constructor(
+    @inject(HELPER_TYPES.AsyncHandlerHelper) private asyncHandlerHelper: IAsyncHandlerHelper,
+    @inject(SERVICE_TYPES.UserService) private userService: IUserService,
+  ) {}
 
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      throw ApiError.badRequest('Email already in use');
-    }
+  login = (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    return this.asyncHandlerHelper.handle<IAuthenticateUser>(this.userService.login, HttpStatusCodeEnum.OK)(
+      req,
+      res,
+      next,
+    );
+  };
 
-    return (await User.create({ email, name, password, role })).toDTO();
-  }, HttpStatus.CREATED);
-
-  login = asyncHandler(async (req: Request, _res: Response, _next: NextFunction) => {
-    const { email, password } = req.body;
-    return await authenticateUser(email, password);
-  });
+  register = (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    return this.asyncHandlerHelper.handle<UserDTO>(this.userService.register, HttpStatusCodeEnum.CREATED)(
+      req,
+      res,
+      next,
+    );
+  };
 }

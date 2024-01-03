@@ -15,7 +15,7 @@ import {
 import { Cake } from './Cake';
 import { CakeIngredient } from './CakeIngredient';
 
-interface ProductAttributes {
+interface IProductAttributes {
   id: number;
   barcode: string;
   name: string;
@@ -23,10 +23,15 @@ interface ProductAttributes {
   price: number;
 }
 
-interface ProductCreationAttributes extends Optional<ProductAttributes, 'id'> {}
+interface IProductCreationAttributes extends Optional<IProductAttributes, 'id'> {}
+
+export interface IProductFiltersOptions {
+  key: string;
+  value: string;
+}
 
 @Table({ tableName: 'products' })
-export class Product extends Model<ProductAttributes, ProductCreationAttributes> {
+export class Product extends Model<IProductAttributes, IProductCreationAttributes> {
   @PrimaryKey
   @AutoIncrement
   @Column
