@@ -4,6 +4,6 @@ import { HttpStatusCodeEnum } from '@/constants/HttpStatusCodeConstants';
 export interface IAsyncHandlerHelper {
   handle<T>(
     fn: (req: Request) => Promise<T>,
-    statusCode: HttpStatusCodeEnum,
+    statusCode?: HttpStatusCodeEnum,
   ): (req: Request, res: Response, next: NextFunction) => Promise<void>;
 }

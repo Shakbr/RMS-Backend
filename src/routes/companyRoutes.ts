@@ -1,15 +1,34 @@
-// import { CompanyController } from './../controllers/companyController';
-// import express from 'express';
-// import { protect } from '@/middlewares/authMiddleware';
+import { Router } from 'express';
+import { inject, injectable } from 'inversify';
+import { IRouter } from '@/interfaces/router/IRouter';
+import { MIDDLEWARE_TYPES } from '@/types/middlewares';
+import { IAuthMiddleware } from '@/interfaces/middlewares/IAuthMiddleware';
+import { CONTROLLER_TYPES } from '@/types/controllers';
+import { ICompanyController } from '@/interfaces/controllers/ICompanyController';
 
-// const router = express.Router();
-// const controller = new CompanyController();
+@injectable()
+export class CompanyRouter implements IRouter {
+  private router: Router;
 
-// router.use(protect);
-// router.post('/', controller.create);
-// router.get('/', controller.findAll);
-// router.get('/:id', controller.findOne);
-// router.put('/:id', controller.update);
-// router.delete('/:id', controller.delete);
+  constructor(
+    @inject(CONTROLLER_TYPES.CompanyController) private companyController: ICompanyController,
+    @inject(MIDDLEWARE_TYPES.AuthMiddleware) private authMiddleware: IAuthMiddleware,
+  ) {
+    this.router = Router();
+    this.initializeRoutes();
+  }
 
-// export default router;
+  private initializeRoutes() {
+    this.router.use(this.authMiddleware.protect);
+
+    this.router.get('/', this.companyController.findAll);
+    this.router.get('/:id', this.companyController.findOne);
+    this.router.post('/', this.companyController.create);
+    this.router.put('/:id', this.companyController.update);
+    this.router.delete('/:id', this.companyController.delete);
+  }
+
+  public getRouter(): Router {
+    return this.router;
+  }
+}
