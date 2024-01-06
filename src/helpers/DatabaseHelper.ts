@@ -3,15 +3,16 @@ import { ApiError } from '../errors/ApiError';
 import { ModelCtor } from 'sequelize-typescript';
 import { UserDTO } from '@/models/User';
 import { injectable } from 'inversify';
-import { IDatabaseHelper, IModels } from '@/interfaces/helpers/IDatabaseHelper';
+import { IDatabaseHelper } from '@/interfaces/helpers/IDatabaseHelper';
+import { TAvailableModels } from '@/types/common';
 
 @injectable()
 export class DatabaseHelper implements IDatabaseHelper {
-  async findResourceOrThrow<M extends keyof IModels>(
-    model: ModelCtor<IModels[M]>,
+  async findResourceOrThrow<M extends keyof TAvailableModels>(
+    model: ModelCtor<TAvailableModels[M]>,
     resourceId: string | number,
     user: UserDTO,
-  ): Promise<IModels[M]> {
+  ): Promise<TAvailableModels[M]> {
     const resource = await model.findByPk(resourceId);
     if (!resource) {
       throw ApiError.notFound(`${model.name} not found with ID: ${resourceId}`);

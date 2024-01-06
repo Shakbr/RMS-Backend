@@ -8,7 +8,7 @@ import { ICompanyService } from '@/interfaces/services/ICompanyService';
 import { IAsyncHandlerHelper } from '@/interfaces/helpers/IAsyncHandlerHelper';
 import { IAuthRequest } from '@/interfaces/common/IAuth';
 import { Company } from '@/models/Company';
-import { IFindAll } from '@/interfaces/services/ICompanyService';
+import { IItemPagination } from '@/interfaces/common/IApi';
 
 @injectable()
 export class CompanyController implements ICompanyController {
@@ -26,7 +26,7 @@ export class CompanyController implements ICompanyController {
   };
 
   findAll = (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
-    return this.asyncHandlerHelper.handle<IFindAll>(this.companyService.findAll)(req, res, next);
+    return this.asyncHandlerHelper.handle<IItemPagination<Company>>(this.companyService.findAll)(req, res, next);
   };
 
   findOne = (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {

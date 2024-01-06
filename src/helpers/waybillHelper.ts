@@ -1,36 +1,30 @@
-import axios from 'axios';
-import { XMLParser } from 'fast-xml-parser';
+import { inject, injectable } from 'inversify';
+import { SERVICE_TYPES } from '@/types/services';
+import { ISoapService } from '@/interfaces/services/ISoapService';
+import { IWaybillHelper, IWaybillResponse, IWaybillUnitResponse } from '@/interfaces/helpers/IWaybillHelper';
 
-export async function sendSoapRequest(action: string, date: Date = null) {
-  const url = process.env.WAYBILL_SERVICE_URL;
-  const username = process.env.WAYBILL_SERVICE_USERNAME;
-  const password = process.env.WAYBILL_SERVICE_PASSWORD;
+@injectable()
+export class WaybillHelper implements IWaybillHelper {
+  constructor(@inject(SERVICE_TYPES.SoapService) private soapService: ISoapService) {}
 
-  const bodyDateArg = date
-    ? `<create_date_s>${new Date(date.setHours(0, 0, 1)).toISOString()}</create_date_s>
-        `
-    : '';
+  getWaybills = async (date: Date): Promise<IWaybillResponse[]> => {
+    const fromDate = new Date(date);
 
-  const body = `<?xml version="1.0" encoding="utf-8"?>
-    <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
-      <soap12:Body>
-        <${action} xmlns="http://tempuri.org/">
-          <su>${username}</su>
-          <sp>${password}</sp>
-          ${bodyDateArg}
-        </${action}>
-      </soap12:Body>
-    </soap12:Envelope>`;
-  const response = await axios.post(url, body, {
-    headers: {
-      'Content-Type': 'application/soap+xml; charset=utf-8',
-    },
-  });
+    const responseObj = await this.soapService.sendRequest('get_buyer_waybilll_goods_list', fromDate);
+    return responseObj['soap:Envelope']['soap:Body']['get_buyer_waybilll_goods_listResponse'][
+      'get_buyer_waybilll_goods_listResult'
+    ]['WAYBILL_LIST']['WAYBILL'];
+  };
 
-  const parser = new XMLParser();
-  const responseObj = parser.parse(response.data);
-
-  return responseObj;
+  getWaybillUnits = async (): Promise<IWaybillUnitResponse[]> => {
+    const responseObj = await this.soapService.sendRequest('get_waybill_units');
+    const unitData =
+      responseObj['soap:Envelope']['soap:Body']['get_waybill_unitsResponse']['get_waybill_unitsResult'][
+        'WAYBILL_UNITS'
+      ]['WAYBILL_UNIT'];
+    return unitData.map((unit: { ID: number; NAME: string }) => ({
+      unitId: unit['ID'],
+      name: unit['NAME'],
+    }));
+  };
 }

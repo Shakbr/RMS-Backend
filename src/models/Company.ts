@@ -16,7 +16,7 @@ import { User } from '@/models/User';
 interface CompanyAttributes {
   id: number;
   name: string;
-  tin: string;
+  tin: number;
   userId: number;
 }
 

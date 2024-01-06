@@ -13,7 +13,8 @@ export class DatabaseInitializer implements IDatabaseInitializer {
       const sequelize = this.databaseConfig.getInstance();
       await sequelize.authenticate();
       console.log('Connection to the database has been established successfully.');
-      // await sequelize.sync({ force: false });
+      // TODO uncomment this line to drop all tables and create new ones
+      // await sequelize.sync({ force: true });
       console.log('Database & tables created!');
     } catch (error) {
       console.error('Unable to connect to the database:', error);

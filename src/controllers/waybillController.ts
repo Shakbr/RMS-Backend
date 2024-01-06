@@ -1,35 +1,28 @@
-// import { AsyncHandlerHelper } from '@/helpers/AsyncHandlerHelper';
-// import { Waybill } from '@/models/Waybill';
-// import { WaybillService } from '@/services/WaybillService';
-// import { AuthRequest } from '@/types/types';
-// import { NextFunction, Response } from 'express';
+import { IAuthRequest } from '@/interfaces/common/IAuth';
+import { IWaybillController } from '@/interfaces/controllers/IWaybillController';
+import { IAsyncHandlerHelper } from '@/interfaces/helpers/IAsyncHandlerHelper';
+import { IWaybillService } from '@/interfaces/services/IWaybillService';
+import { HELPER_TYPES } from '@/types/helpers';
+import { SERVICE_TYPES } from '@/types/services';
+import { NextFunction, Response } from 'express';
+import { inject, injectable } from 'inversify';
 
-// export class WaybillController {
-//   private waybillService: WaybillService;
+@injectable()
+export class WaybillController implements IWaybillController {
+  constructor(
+    @inject(HELPER_TYPES.AsyncHandlerHelper) private asyncHandlerHelper: IAsyncHandlerHelper,
+    @inject(SERVICE_TYPES.WaybillService) private waybillService: IWaybillService,
+  ) {}
 
-//   constructor() {
-//     this.waybillService = new WaybillService();
-//   }
+  syncDailyWaybills = (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    return this.asyncHandlerHelper.handle(this.waybillService.syncDailyWaybills)(req, res, next);
+  };
 
-//   syncDailyWaybills = AsyncHandlerHelper(async (req: AuthRequest, _res: Response, _next: NextFunction) => {
-//     await this.waybillService.syncDailyWaybills(req.user.id);
-//   });
+  syncWaybillUnits = (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    return this.asyncHandlerHelper.handle(this.waybillService.syncWaybillUnits)(req, res, next);
+  };
 
-//   syncWaybillUnits = AsyncHandlerHelper(async (_req: AuthRequest, _res: Response, _next: NextFunction) => {
-//     await this.waybillService.syncWaybillUnits();
-//   });
-
-//   findAll = AsyncHandlerHelper(async (req: AuthRequest, _res: Response, _next: NextFunction) => {
-//     const query = {};
-//     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
-//     const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
-
-//     const offset = (page - 1) * limit;
-
-//     const { count, rows: waybills } = await Waybill.findAndCountAll({ where: query, limit, offset });
-
-//     const totalPage = Math.ceil(count / limit);
-
-//     return { waybills, totalItems: count, totalPage, currentPage: page };
-//   });
-// }
+  findAll = (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    return this.asyncHandlerHelper.handle(this.waybillService.findAll)(req, res, next);
+  };
+}

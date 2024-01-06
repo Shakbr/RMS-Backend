@@ -1,4 +1,4 @@
-import { Table, Column, Model, PrimaryKey, AutoIncrement, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import { Table, Column, Model, PrimaryKey, AutoIncrement, DataType, ForeignKey } from 'sequelize-typescript';
 import { Cake } from './Cake';
 import { Product } from './Product';
 import { Optional } from 'sequelize';
@@ -13,6 +13,7 @@ interface CakeIngredientAttributes {
 export interface CakeIngredientCreationAttributes extends Optional<CakeIngredientAttributes, 'id'> {}
 
 @Table({
+  tableName: 'cake_ingredients',
   indexes: [
     {
       unique: true,
@@ -28,18 +29,12 @@ export class CakeIngredient extends Model<CakeIngredientAttributes, CakeIngredie
 
   @ForeignKey(() => Cake)
   @Column({ type: DataType.INTEGER, field: 'cake_id' })
-  cakeId: CakeIngredientAttributes['cakeId'];
+  cakeId!: CakeIngredientAttributes['cakeId'];
 
   @ForeignKey(() => Product)
-  @Column({ type: DataType.STRING(50) })
-  barcode: CakeIngredientAttributes['barcode'];
+  @Column(DataType.STRING)
+  barcode!: string;
 
   @Column(DataType.DECIMAL(10, 2))
   amount: CakeIngredientAttributes['amount'];
-
-  @BelongsTo(() => Product, { targetKey: 'barcode' })
-  product: Product;
-
-  @BelongsTo(() => Cake, { targetKey: 'id' })
-  cake: Cake;
 }

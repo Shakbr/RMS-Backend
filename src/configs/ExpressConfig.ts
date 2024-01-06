@@ -1,4 +1,3 @@
-import * as dotenv from 'dotenv';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import express, { Application } from 'express';
@@ -21,7 +20,6 @@ export class ExpressConfig implements IExpressConfig {
     @inject(ROUTE_TYPES.MainRouter) private mainRouter: IRouter,
     @inject(MIDDLEWARE_TYPES.ErrorHandlerMiddleware) private errorHandlerMiddleware: ErrorHandlerMIddleware,
   ) {
-    dotenv.config();
     ValidateEnvUtils.validateEnv();
     this.app = express();
     this.initializeMiddlewares();

@@ -1,16 +1,11 @@
-import { Company } from '@/models/Company';
 import { UserDTO } from '@/models/User';
 import { ModelCtor } from 'sequelize-typescript';
+import { TAvailableModels } from '@/types/common';
 
 export interface IDatabaseHelper {
-  findResourceOrThrow<M extends keyof IModels>(
-    model: ModelCtor<IModels[M]>,
+  findResourceOrThrow<M extends keyof TAvailableModels>(
+    model: ModelCtor<TAvailableModels[M]>,
     resourceId: string | number,
     user: UserDTO,
-  ): Promise<IModels[M]>;
-}
-
-export interface IModels {
-  // here should be all models, which you want to use in this file
-  Company: Company;
+  ): Promise<TAvailableModels[M]>;
 }

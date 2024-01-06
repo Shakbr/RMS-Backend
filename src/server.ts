@@ -1,3 +1,5 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
 import 'reflect-metadata';
 import { CONFIG_TYPES } from './types/config';
 import { container } from '../inversify.config';

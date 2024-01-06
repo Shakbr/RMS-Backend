@@ -14,6 +14,7 @@ import {
 } from 'sequelize-typescript';
 import { Cake } from './Cake';
 import { CakeIngredient } from './CakeIngredient';
+import { User } from './User';
 
 interface IProductAttributes {
   id: number;
@@ -21,14 +22,10 @@ interface IProductAttributes {
   name: string;
   unitId: number;
   price: number;
+  userId: number;
 }
 
-interface IProductCreationAttributes extends Optional<IProductAttributes, 'id'> {}
-
-export interface IProductFiltersOptions {
-  key: string;
-  value: string;
-}
+export interface IProductCreationAttributes extends Optional<IProductAttributes, 'id'> {}
 
 @Table({ tableName: 'products' })
 export class Product extends Model<IProductAttributes, IProductCreationAttributes> {
@@ -38,7 +35,7 @@ export class Product extends Model<IProductAttributes, IProductCreationAttribute
   id!: number;
 
   @Unique
-  @Column
+  @Column(DataType.STRING)
   barcode!: string;
 
   @Column
@@ -51,9 +48,16 @@ export class Product extends Model<IProductAttributes, IProductCreationAttribute
   @Column({ field: 'unit_id' })
   unitId!: number;
 
+  @ForeignKey(() => User)
+  @Column({ field: 'user_id' })
+  userId!: number;
+
+  @BelongsTo(() => User)
+  user!: User;
+
   @BelongsTo(() => WaybillUnit, { targetKey: 'unitId' })
   unit: WaybillUnit;
 
-  @BelongsToMany(() => Cake, () => CakeIngredient)
+  @BelongsToMany(() => Cake, { through: () => CakeIngredient, foreignKey: 'barcode', sourceKey: 'barcode' })
   cakes: Cake[];
 }

@@ -1,4 +1,14 @@
-import { Table, Column, Model, PrimaryKey, AutoIncrement, BelongsToMany, DataType } from 'sequelize-typescript';
+import {
+  Table,
+  Column,
+  Model,
+  PrimaryKey,
+  AutoIncrement,
+  BelongsToMany,
+  DataType,
+  Scopes,
+  DefaultScope,
+} from 'sequelize-typescript';
 import { Product } from './Product';
 import { CakeIngredient } from './CakeIngredient';
 import { Optional } from 'sequelize';
@@ -16,7 +26,22 @@ export interface CakeCreationAttributesWithIngredients extends CakeCreationAttri
   ingredients: CakeIngredient[];
 }
 
-@Table
+@DefaultScope(() => ({
+  attributes: ['id', 'name', 'slice', 'price'],
+}))
+@Scopes(() => ({
+  withProducts: {
+    attributes: ['id', 'name', 'slice', 'price'],
+    include: [
+      {
+        model: Product,
+        attributes: ['name', 'price'],
+        through: { attributes: ['amount'] },
+      },
+    ],
+  },
+}))
+@Table({ tableName: 'cakes' })
 export class Cake extends Model<CakeAttributes, CakeCreationAttributes> {
   @PrimaryKey
   @AutoIncrement
@@ -32,6 +57,10 @@ export class Cake extends Model<CakeAttributes, CakeCreationAttributes> {
   @Column(DataType.DECIMAL(10, 2))
   price: number;
 
-  @BelongsToMany(() => Product, () => CakeIngredient)
+  @BelongsToMany(() => Product, {
+    through: () => CakeIngredient,
+    foreignKey: 'cakeId',
+    sourceKey: 'id',
+  })
   products: Product[];
 }

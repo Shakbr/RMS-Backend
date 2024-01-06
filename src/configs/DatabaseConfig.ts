@@ -7,9 +7,10 @@ import { WaybillUnit } from '@/models/WaybillUnit';
 import { Waybill } from '@/models/Waybill';
 import { Cake } from '@/models/Cake';
 import { CakeIngredient } from '@/models/CakeIngredient';
+import { IDatabaseConfig } from '@/interfaces/configs/IDatabaseConfig';
 
 @injectable()
-export class DatabaseConfig {
+export class DatabaseConfig implements IDatabaseConfig {
   private sequelize: Sequelize;
   private readonly defaultPort = 5432;
   private isTestEnvironment = process.env.NODE_ENV === 'test';
@@ -34,7 +35,7 @@ export class DatabaseConfig {
         });
   }
 
-  public getInstance() {
+  getInstance = (): Sequelize => {
     return this.sequelize;
-  }
+  };
 }
