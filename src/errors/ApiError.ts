@@ -1,5 +1,4 @@
-import { HttpStatus } from './../utils/httpStatusCodesUtils';
-
+import { HttpStatusCodeEnum } from '@/constants/HttpStatusCodeConstants';
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -9,18 +8,18 @@ export class ApiError extends Error {
   }
 
   static badRequest(msg: string): ApiError {
-    return new ApiError(HttpStatus.BAD_REQUEST, msg);
+    return new ApiError(HttpStatusCodeEnum.BAD_REQUEST, msg);
   }
 
   static notFound(msg: string): ApiError {
-    return new ApiError(HttpStatus.NOT_FOUND, msg);
+    return new ApiError(HttpStatusCodeEnum.NOT_FOUND, msg);
   }
 
   static unauthorized(msg: string): ApiError {
-    return new ApiError(HttpStatus.UNAUTHORIZED, msg);
+    return new ApiError(HttpStatusCodeEnum.UNAUTHORIZED, msg);
   }
 
   static forbidden(msg: string): ApiError {
-    return new ApiError(HttpStatus.FORBIDDEN, msg);
+    return new ApiError(HttpStatusCodeEnum.FORBIDDEN, msg);
   }
 }

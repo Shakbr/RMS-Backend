@@ -1,24 +1,45 @@
+import { injectable, inject } from 'inversify';
 import { Request, Response, NextFunction } from 'express';
-import { User } from '../models/User';
-import { authenticateUser } from '../services/authService';
-import { ApiError } from '../errors/ApiError';
-import { asyncHandler } from '../helpers/asyncHandler';
-import { HttpStatus } from '@/utils/httpStatusCodesUtils';
+import { SERVICE_TYPES } from '@/types/services';
+import { HELPER_TYPES } from '@/types/helpers';
+import { HttpStatusCodeEnum } from '@/constants/HttpStatusCodeConstants';
+import { IUserController } from '@/interfaces/controllers/IUserController';
+import { IUserService } from '@/interfaces/services/IUserService';
+import { IAsyncHandlerHelper } from '@/interfaces/helpers/IAsyncHandlerHelper';
+import { UserDTO } from '@/models/User';
 
-export class UserController {
-  register = asyncHandler(async (req: Request, _res: Response, _next: NextFunction) => {
-    const { email, name, password, role } = req.body;
+@injectable()
+export class UserController implements IUserController {
+  constructor(
+    @inject(HELPER_TYPES.AsyncHandlerHelper) private asyncHandlerHelper: IAsyncHandlerHelper,
+    @inject(SERVICE_TYPES.UserService) private userService: IUserService,
+  ) {}
 
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      throw ApiError.badRequest('Email already in use');
+  login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { user, accessToken, refreshToken } = await this.userService.login(req);
+      res.cookie('refreshToken', refreshToken, { httpOnly: true });
+      res.status(HttpStatusCodeEnum.OK).json({ user, accessToken });
+    } catch (error) {
+      next(error);
     }
+  };
 
-    return (await User.create({ email, name, password, role })).toDTO();
-  }, HttpStatus.CREATED);
+  register = (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    return this.asyncHandlerHelper.handle<UserDTO>(this.userService.register, HttpStatusCodeEnum.CREATED)(
+      req,
+      res,
+      next,
+    );
+  };
 
-  login = asyncHandler(async (req: Request, _res: Response, _next: NextFunction) => {
-    const { email, password } = req.body;
-    return await authenticateUser(email, password);
-  });
+  regenerateAccessAndRefreshToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { accessToken, refreshToken } = await this.userService.regenerateAccessAndRefreshToken(req);
+      res.cookie('refreshToken', refreshToken, { httpOnly: true });
+      res.status(HttpStatusCodeEnum.OK).json({ accessToken });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

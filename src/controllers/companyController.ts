@@ -1,67 +1,43 @@
-import { AuthRequest } from './../types/types';
+import { injectable, inject } from 'inversify';
 import { Response, NextFunction } from 'express';
-import { Company } from '../models/Company';
-import { asyncHandler } from '../helpers/asyncHandler';
-import { HttpStatus } from '../utils/httpStatusCodesUtils';
-import { ApiError } from '@/errors/ApiError';
-import { findResourceOrThrow } from '@/helpers/dbHelper';
+import { SERVICE_TYPES } from '@/types/services';
+import { HELPER_TYPES } from '@/types/helpers';
+import { HttpStatusCodeEnum } from '@/constants/HttpStatusCodeConstants';
+import { ICompanyController } from '@/interfaces/controllers/ICompanyController';
+import { ICompanyService } from '@/interfaces/services/ICompanyService';
+import { IAsyncHandlerHelper } from '@/interfaces/helpers/IAsyncHandlerHelper';
+import { IAuthRequest } from '@/interfaces/common/IAuth';
+import { Company } from '@/models/Company';
+import { IItemPagination } from '@/interfaces/common/IApi';
 
-export class CompanyController {
-  create = asyncHandler(async (req: AuthRequest, _res: Response, _next: NextFunction) => {
-    const { name, tin } = req.body;
+@injectable()
+export class CompanyController implements ICompanyController {
+  constructor(
+    @inject(HELPER_TYPES.AsyncHandlerHelper) private asyncHandlerHelper: IAsyncHandlerHelper,
+    @inject(SERVICE_TYPES.CompanyService) private companyService: ICompanyService,
+  ) {}
 
-    const existingCompany = await Company.findOne({ where: { name } });
-    if (existingCompany) {
-      throw ApiError.badRequest('Company already exists');
-    }
+  create = (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    return this.asyncHandlerHelper.handle<Company>(this.companyService.create, HttpStatusCodeEnum.CREATED)(
+      req,
+      res,
+      next,
+    );
+  };
 
-    return await Company.create({ name, tin, userId: req.user.id });
-  }, HttpStatus.CREATED);
+  findAll = (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    return this.asyncHandlerHelper.handle<IItemPagination<Company>>(this.companyService.findAll)(req, res, next);
+  };
 
-  findAll = asyncHandler(async (req: AuthRequest, _res: Response, _next: NextFunction) => {
-    const query = {};
-    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
-    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+  findOne = (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    return this.asyncHandlerHelper.handle<Company>(this.companyService.findOne)(req, res, next);
+  };
 
-    const offset = (page - 1) * limit;
+  update = (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    return this.asyncHandlerHelper.handle<Company>(this.companyService.update)(req, res, next);
+  };
 
-    const { count, rows: companies } = await Company.findAndCountAll({ where: query, limit, offset });
-
-    const totalPage = Math.ceil(count / limit);
-
-    return { companies, totalItems: count, totalPage, currentPage: page };
-  });
-
-  findOne = asyncHandler(async (req: AuthRequest, _res: Response, _next: NextFunction) => {
-    return await findResourceOrThrow(Company, req.params.id, req.user);
-  });
-
-  update = asyncHandler(async (req: AuthRequest, _res: Response, _next: NextFunction) => {
-    const { id } = req.params;
-    const { name, tin } = req.body;
-
-    const company = await findResourceOrThrow(Company, id, req.user);
-
-    if (!company) {
-      throw ApiError.notFound('Company not found');
-    }
-
-    await company.update({ name, tin });
-
-    return company;
-  });
-
-  delete = asyncHandler(async (req: AuthRequest, _res: Response, _next: NextFunction) => {
-    const { id } = req.params;
-
-    const company = await findResourceOrThrow(Company, id, req.user);
-
-    if (!company) {
-      throw ApiError.notFound('Company not found');
-    }
-
-    await company.destroy();
-
-    return { message: 'Company deleted successfully' };
-  });
+  delete = (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    return this.asyncHandlerHelper.handle<{ message: string }>(this.companyService.delete)(req, res, next);
+  };
 }

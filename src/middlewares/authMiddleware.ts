@@ -1,25 +1,25 @@
+import { inject, injectable } from 'inversify';
 import { Response, NextFunction } from 'express';
-import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
 import { ApiError } from '../errors/ApiError';
-import { AuthRequest } from '../types/types';
-import { UserDTO } from '@/models/User';
+import { IAuthMiddleware } from '@/interfaces/middlewares/IAuthMiddleware';
+import { IAuthRequest } from '@/interfaces/common/IAuth';
+import { HELPER_TYPES } from '@/types/helpers';
+import { IAuthHelper } from '@/interfaces/helpers/IAuthHelper';
 
-export const JWT_SECRET_KEY: Secret = process.env.JWT_SECRET as Secret;
-
-export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    if (!token) {
-      throw ApiError.badRequest('No token provided');
+@injectable()
+export class AuthMiddleware implements IAuthMiddleware {
+  @inject(HELPER_TYPES.AuthHelper) private authHelper: IAuthHelper;
+  protect = async (req: IAuthRequest, _res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const accessToken = req.header('Authorization')?.replace('Bearer ', '');
+      if (!accessToken) {
+        throw ApiError.badRequest('No token provided');
+      }
+      const userFromDecodedAccessToken = this.authHelper.verifyAccessToken(accessToken);
+      req.user = userFromDecodedAccessToken;
+      next();
+    } catch (error) {
+      next(error);
     }
-
-    const decoded = jwt.verify(token, JWT_SECRET_KEY) as JwtPayload;
-    const { id, name, email, role } = decoded.user;
-
-    const user: UserDTO = { id, name, email, role };
-    req.user = user;
-    next();
-  } catch (error) {
-    next(ApiError.unauthorized('Not authorized'));
-  }
-};
+  };
+}

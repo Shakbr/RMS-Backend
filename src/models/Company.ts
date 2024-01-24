@@ -16,7 +16,7 @@ import { User } from '@/models/User';
 interface CompanyAttributes {
   id: number;
   name: string;
-  tin: string;
+  tin: number;
   userId: number;
 }
 
@@ -39,7 +39,7 @@ export class Company extends Model<CompanyAttributes, CompanyCreationAttributes>
   tin!: number;
 
   @ForeignKey(() => User)
-  @Column
+  @Column({ field: 'user_id' })
   userId!: number;
 
   @BelongsTo(() => User)

@@ -1,80 +1,102 @@
-import { sendSoapRequest } from '@/helpers/waybillHelper';
-import { Company } from '@/models/Company';
+import { IItemPagination } from '@/interfaces/common/IApi';
+import { IAuthRequest } from '@/interfaces/common/IAuth';
+import { IWaybillHelper, IWaybillResponse, IWaybillUnitResponse } from '@/interfaces/helpers/IWaybillHelper';
+import { ICompanyService } from '@/interfaces/services/ICompanyService';
+import { IProductService } from '@/interfaces/services/IProductService';
+import { IWaybillService } from '@/interfaces/services/IWaybillService';
 import { Product } from '@/models/Product';
 import { Waybill } from '@/models/Waybill';
 import { WaybillUnit } from '@/models/WaybillUnit';
+import { HELPER_TYPES } from '@/types/helpers';
+import { SERVICE_TYPES } from '@/types/services';
+import { DataUtils } from '@/utils/DataUtils';
+import { inject, injectable } from 'inversify';
 
-export class WaybillService {
-  async getWaybills() {
-    const date = new Date('2023-09-26');
+@injectable()
+export class WaybillService implements IWaybillService {
+  constructor(
+    @inject(SERVICE_TYPES.CompanyService) private companyService: ICompanyService,
+    @inject(SERVICE_TYPES.ProductService) private productService: IProductService,
+    @inject(HELPER_TYPES.WaybillHelper) private waybillHelper: IWaybillHelper,
+  ) {}
 
-    const responseObj = await sendSoapRequest('get_buyer_waybilll_goods_list', date);
-    return responseObj['soap:Envelope']['soap:Body']['get_buyer_waybilll_goods_listResponse'][
-      'get_buyer_waybilll_goods_listResult'
-    ]['WAYBILL_LIST']['WAYBILL'];
-  }
+  // TODO here I might add a create date to the waybill
+  private create = async (data: IWaybillResponse): Promise<void> => {
+    // TODO this uniqueBarcode implementation should be refactored
+    const uniqueBarcode = DataUtils.generateUniqueBarcode(data.BAR_CODE, data.TIN);
+    await Waybill.findOrCreate({
+      where: { waybillId: String(data.WAYBILL_NUMBER), barcode: uniqueBarcode },
+      defaults: {
+        waybillId: String(data.WAYBILL_NUMBER),
+        tin: data.TIN,
+        unitId: data.UNIT_ID,
+        quantity: data.QUANTITY,
+        price: data.PRICE,
+        amount: data.AMOUNT,
+        barcode: uniqueBarcode,
+        status: data.STATUS,
+        beginDate: data.BEGIN_DATE,
+        closeDate: data.CLOSE_DATE,
+      },
+    });
+  };
 
-  async getWaybillUnits() {
-    const responseObj = await sendSoapRequest('get_waybill_units');
-    const unitData =
-      responseObj['soap:Envelope']['soap:Body']['get_waybill_unitsResponse']['get_waybill_unitsResult'][
-        'WAYBILL_UNITS'
-      ]['WAYBILL_UNIT'];
-    return unitData.map((unit: { ID: number; NAME: string }) => ({
-      unitId: unit['ID'],
-      name: unit['NAME'],
-    }));
-  }
+  findAll = async (req: IAuthRequest): Promise<IItemPagination<Waybill>> => {
+    const query = {};
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
 
-  async syncDailyWaybills(userId: number) {
-    const waybillsData = await this.getWaybills();
+    const offset = (page - 1) * limit;
+
+    const { count, rows: waybills } = await Waybill.findAndCountAll({
+      where: query,
+      limit,
+      offset,
+      include: [
+        { model: Product, as: 'product', attributes: ['name'] },
+        { model: WaybillUnit, as: 'unit', attributes: ['name'] },
+      ],
+    });
+
+    const totalPage = Math.ceil(count / limit);
+
+    return { items: waybills, totalItems: count, totalPage, currentPage: page };
+  };
+
+  syncDailyWaybills = async (req: IAuthRequest): Promise<void> => {
+    const date = req.body.date ? req.body.date : new Date('2023-10-01');
+    const waybillsData = await this.waybillHelper.getWaybills(date);
     if (!waybillsData) return;
     // sync waybill units
     await this.syncWaybillUnits();
-
     for (const waybillData of waybillsData) {
-      console.log(waybillData);
       // create a company if it doesn't exist
-      await Company.findOrCreate({
-        where: { tin: waybillData.TIN },
-        defaults: { name: waybillData.NAME, tin: waybillData.TIN, userId },
-      });
+      await this.companyService.create(req, { name: waybillData.NAME, tin: waybillData.TIN });
 
       // create a product if it doesn't exist
-      const [product, created] = await Product.findOrCreate({
-        where: { barCode: String(waybillData.BAR_CODE) },
-        defaults: {
-          barCode: waybillData.BAR_CODE,
-          name: waybillData.W_NAME,
-          unitId: 99,
-          price: waybillData.PRICE,
-        },
+      const product = await this.productService.create(req, {
+        barcode: waybillData.BAR_CODE,
+        name: waybillData.W_NAME,
+        unitId: waybillData.UNIT_ID,
+        price: waybillData.PRICE,
+        tin: waybillData.TIN,
       });
-      // if the product was not created and the price is different, add a notification
-      if (!created && product.price !== waybillData.PRICE) {
-        // for now just log the notification
-        console.log(`Price for product ${product.barCode} has changed from ${product.price} to ${waybillData.PRICE}`);
+      if (product.price !== waybillData.PRICE) {
+        // Considering potential floating point precision issues
+        const isPriceDifferent = Math.abs(product.price - waybillData.PRICE) > Number.EPSILON;
+        if (isPriceDifferent) {
+          //TODO here I should add a notification
+          console.log(`Price for product ${product.barcode} has changed from ${product.price} to ${waybillData.PRICE}`);
+        }
       }
 
       // create a waybill if it doesn't exist
-      await Waybill.findOrCreate({
-        where: { waybillId: String(waybillData.WAYBILL_NUMBER), barCode: String(waybillData.BAR_CODE) },
-        defaults: {
-          waybillId: String(waybillData.WAYBILL_NUMBER),
-          tinId: waybillData.TIN,
-          unitId: waybillData.UNIT_ID,
-          quantity: waybillData.QUANTITY,
-          price: waybillData.PRICE,
-          amount: waybillData.AMOUNT,
-          barCode: String(waybillData.BAR_CODE),
-          status: waybillData.STATUS,
-        },
-      });
+      await this.create(waybillData);
     }
-  }
+  };
 
-  async syncWaybillUnits() {
-    const unitData = await this.getWaybillUnits();
+  syncWaybillUnits = async (): Promise<IWaybillUnitResponse[]> => {
+    const unitData = await this.waybillHelper.getWaybillUnits();
     const result = [];
     for (const unit of unitData) {
       result.push(
@@ -84,5 +106,6 @@ export class WaybillService {
         }),
       );
     }
-  }
+    return result;
+  };
 }
