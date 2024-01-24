@@ -23,6 +23,7 @@
     "paths": {
       "@/*": ["*"],
       "@controllers/*": ["controllers/*"],
+      "@config/*": ["config/*"],
       "@database/*": ["database/*"],
       "@errors/*": ["errors/*"],
       "@helpers/*": ["helpers/*"],
@@ -34,9 +35,7 @@
       "@types/*": ["types/*"],
       "@interfaces/*": ["interfaces/*"],
       "@utils/*": ["utils/*"],
-      "@testUtils/*": ["testUtils/*"],
       "@validators/*": ["validators/*"],
-
     }
   },
   "include": ["src//**/*.ts", "src//*.json", ".env"],
