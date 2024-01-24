@@ -35,6 +35,8 @@ export class UserRouter implements IRouter {
       this.validationErrorHandlerMiddleware.handleError,
       this.userController.register,
     );
+
+    this.router.get('/access-token', this.userController.regenerateAccessAndRefreshToken);
   }
 
   public getRouter(): Router {

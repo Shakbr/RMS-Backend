@@ -1,6 +1,6 @@
 import { Table, Column, Model, PrimaryKey, AutoIncrement, DataType, ForeignKey } from 'sequelize-typescript';
 import { Cake } from './Cake';
-import { Product } from './Product';
+import { BasicProduct, Product } from './Product';
 import { Optional } from 'sequelize';
 
 interface CakeIngredientAttributes {
@@ -10,7 +10,22 @@ interface CakeIngredientAttributes {
   amount: number;
 }
 
+export enum IngredientType {
+  GR = 'gr',
+  ML = 'ml',
+  COUNT = 'count',
+}
+
 export interface CakeIngredientCreationAttributes extends Optional<CakeIngredientAttributes, 'id'> {}
+export interface ICakeIngredientsWithAmountType extends CakeIngredientAttributes {
+  amountType: IngredientType;
+}
+
+export interface ProductWithAmount extends BasicProduct {
+  ingredient: {
+    amount: CakeIngredientAttributes['amount'];
+  };
+}
 
 @Table({
   tableName: 'cake_ingredients',
@@ -35,6 +50,6 @@ export class CakeIngredient extends Model<CakeIngredientAttributes, CakeIngredie
   @Column(DataType.STRING)
   barcode!: string;
 
-  @Column(DataType.DECIMAL(10, 2))
+  @Column(DataType.DECIMAL(10, 3))
   amount: CakeIngredientAttributes['amount'];
 }

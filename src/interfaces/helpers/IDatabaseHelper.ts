@@ -6,6 +6,6 @@ export interface IDatabaseHelper {
   findResourceOrThrow<M extends keyof TAvailableModels>(
     model: ModelCtor<TAvailableModels[M]>,
     resourceId: string | number,
-    user: UserDTO,
+    user?: UserDTO,
   ): Promise<TAvailableModels[M]>;
 }

@@ -10,6 +10,8 @@ export interface IWaybillResponse {
   AMOUNT: number;
   BAR_CODE: string;
   STATUS: number;
+  BEGIN_DATE: Date;
+  CLOSE_DATE: Date;
 }
 
 export interface IWaybillUnitResponse {

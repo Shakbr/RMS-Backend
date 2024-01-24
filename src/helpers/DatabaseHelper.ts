@@ -11,12 +11,12 @@ export class DatabaseHelper implements IDatabaseHelper {
   async findResourceOrThrow<M extends keyof TAvailableModels>(
     model: ModelCtor<TAvailableModels[M]>,
     resourceId: string | number,
-    user: UserDTO,
+    user?: UserDTO,
   ): Promise<TAvailableModels[M]> {
     const resource = await model.findByPk(resourceId);
     if (!resource) {
       throw ApiError.notFound(`${model.name} not found with ID: ${resourceId}`);
-    } else if (resource.userId !== user.id && !AuthUtils.isAdmin(user)) {
+    } else if (user && resource.userId !== user.id && !AuthUtils.isAdmin(user)) {
       throw ApiError.forbidden('You do not have permission to access this resource');
     }
     return resource;

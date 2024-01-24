@@ -2,18 +2,30 @@ import { Company } from '@/models/Company';
 import { Product } from '@/models/Product';
 import { WaybillUnit } from '@/models/WaybillUnit';
 import { Optional } from 'sequelize';
-import { Table, Column, Model, PrimaryKey, AutoIncrement, ForeignKey, BelongsTo, DataType } from 'sequelize-typescript';
+import {
+  Table,
+  Column,
+  Model,
+  PrimaryKey,
+  AutoIncrement,
+  ForeignKey,
+  BelongsTo,
+  DataType,
+  AllowNull,
+} from 'sequelize-typescript';
 
 interface WaybillAttributes {
   id: number;
   waybillId: string;
-  tinId: number;
+  tin: number;
   unitId: number;
   quantity: number;
   price: number;
   amount: number;
   barcode: string;
   status: number;
+  beginDate: Date;
+  closeDate: Date;
 }
 
 interface WaybillCreationAttributes extends Optional<WaybillAttributes, 'id'> {}
@@ -29,8 +41,8 @@ export class Waybill extends Model<WaybillAttributes, WaybillCreationAttributes>
   waybillId!: string;
 
   @ForeignKey(() => Company)
-  @Column({ field: 'tin_id', type: DataType.BIGINT })
-  tinId!: number;
+  @Column({ field: 'tin', type: DataType.BIGINT })
+  tin!: number;
 
   @ForeignKey(() => WaybillUnit)
   @Column({ field: 'unit_id' })
@@ -51,6 +63,14 @@ export class Waybill extends Model<WaybillAttributes, WaybillCreationAttributes>
 
   @Column
   status!: number;
+
+  @AllowNull
+  @Column({ field: 'begin_date' })
+  beginDate!: Date;
+
+  @AllowNull
+  @Column({ field: 'close_date' })
+  closeDate!: Date;
 
   @BelongsTo(() => Company, { targetKey: 'tin' })
   company: Company;

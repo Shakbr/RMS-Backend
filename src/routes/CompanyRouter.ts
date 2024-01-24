@@ -24,7 +24,7 @@ export class CompanyRouter implements IRouter {
     this.router.get('/', this.companyController.findAll);
     this.router.get('/:id', this.companyController.findOne);
     this.router.post('/', this.companyController.create);
-    this.router.put('/:id', this.companyController.update);
+    this.router.patch('/:id', this.companyController.update);
     this.router.delete('/:id', this.companyController.delete);
   }
 

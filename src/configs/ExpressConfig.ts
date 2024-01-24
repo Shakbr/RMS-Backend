@@ -27,7 +27,12 @@ export class ExpressConfig implements IExpressConfig {
   }
 
   private initializeMiddlewares() {
-    this.app.use(cors());
+    this.app.use(
+      cors({
+        origin: 'http://localhost:5173',
+        credentials: true,
+      }),
+    );
     this.app.use(compression());
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(express.json());

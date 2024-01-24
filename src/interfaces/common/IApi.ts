@@ -1,6 +1,6 @@
-import { TAvailableModels } from '@/types/common';
+import { TAvailableModels, TCustomModelAttributes } from '@/types/common';
 
-export interface IItemPagination<M extends TAvailableModels> {
+export interface IItemPagination<M extends TAvailableModels | TCustomModelAttributes> {
   items: M[];
   totalItems: number;
   totalPage: number;

@@ -8,6 +8,7 @@ import { Waybill } from '@/models/Waybill';
 import { Cake } from '@/models/Cake';
 import { CakeIngredient } from '@/models/CakeIngredient';
 import { IDatabaseConfig } from '@/interfaces/configs/IDatabaseConfig';
+import { RefreshToken } from '@/models/RefreshToken';
 
 @injectable()
 export class DatabaseConfig implements IDatabaseConfig {
@@ -31,7 +32,7 @@ export class DatabaseConfig implements IDatabaseConfig {
           host: process.env.DB_HOST,
           dialect: 'postgres',
           port: process.env.DB_PORT ? +process.env.DB_PORT : this.defaultPort,
-          models: [User, Company, WaybillUnit, Product, Waybill, Cake, CakeIngredient],
+          models: [User, Company, WaybillUnit, Product, Waybill, Cake, CakeIngredient, RefreshToken],
         });
   }
 

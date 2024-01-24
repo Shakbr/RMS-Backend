@@ -3,6 +3,7 @@ const HELPER_TYPES = {
   DatabaseHelper: Symbol.for('DatabaseHelper'),
   WaybillHelper: Symbol.for('WaybillHelper'),
   SoapHelper: Symbol.for('SoapHelper'),
+  AuthHelper: Symbol.for('AuthHelper'),
 };
 
 export { HELPER_TYPES };

@@ -9,6 +9,7 @@ import { Waybill } from '@/models/Waybill';
 import { WaybillUnit } from '@/models/WaybillUnit';
 import { HELPER_TYPES } from '@/types/helpers';
 import { SERVICE_TYPES } from '@/types/services';
+import { DataUtils } from '@/utils/DataUtils';
 import { inject, injectable } from 'inversify';
 
 @injectable()
@@ -19,18 +20,23 @@ export class WaybillService implements IWaybillService {
     @inject(HELPER_TYPES.WaybillHelper) private waybillHelper: IWaybillHelper,
   ) {}
 
+  // TODO here I might add a create date to the waybill
   private create = async (data: IWaybillResponse): Promise<void> => {
+    // TODO this uniqueBarcode implementation should be refactored
+    const uniqueBarcode = DataUtils.generateUniqueBarcode(data.BAR_CODE, data.TIN);
     await Waybill.findOrCreate({
-      where: { waybillId: String(data.WAYBILL_NUMBER), barcode: String(data.BAR_CODE) },
+      where: { waybillId: String(data.WAYBILL_NUMBER), barcode: uniqueBarcode },
       defaults: {
         waybillId: String(data.WAYBILL_NUMBER),
-        tinId: data.TIN,
+        tin: data.TIN,
         unitId: data.UNIT_ID,
         quantity: data.QUANTITY,
         price: data.PRICE,
         amount: data.AMOUNT,
-        barcode: String(data.BAR_CODE),
+        barcode: uniqueBarcode,
         status: data.STATUS,
+        beginDate: data.BEGIN_DATE,
+        closeDate: data.CLOSE_DATE,
       },
     });
   };
@@ -58,7 +64,7 @@ export class WaybillService implements IWaybillService {
   };
 
   syncDailyWaybills = async (req: IAuthRequest): Promise<void> => {
-    const date = req.body.date ? req.body.date : new Date('2023-12-01');
+    const date = req.body.date ? req.body.date : new Date('2023-10-01');
     const waybillsData = await this.waybillHelper.getWaybills(date);
     if (!waybillsData) return;
     // sync waybill units
@@ -73,6 +79,7 @@ export class WaybillService implements IWaybillService {
         name: waybillData.W_NAME,
         unitId: waybillData.UNIT_ID,
         price: waybillData.PRICE,
+        tin: waybillData.TIN,
       });
       if (product.price !== waybillData.PRICE) {
         // Considering potential floating point precision issues

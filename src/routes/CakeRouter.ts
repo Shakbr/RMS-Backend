@@ -21,6 +21,9 @@ export class CakeRouter implements IRouter {
     this.router.use(this.authMiddleware.protect);
     this.router.post('/', this.cakeController.create);
     this.router.get('/', this.cakeController.findAll);
+    this.router.get('/:id', this.cakeController.findOne);
+    this.router.patch('/:id', this.cakeController.update);
+    this.router.delete('/:id', this.cakeController.delete);
   }
 
   getRouter(): Router {

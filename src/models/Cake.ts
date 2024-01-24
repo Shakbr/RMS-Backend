@@ -10,7 +10,7 @@ import {
   DefaultScope,
 } from 'sequelize-typescript';
 import { Product } from './Product';
-import { CakeIngredient } from './CakeIngredient';
+import { CakeIngredient, ProductWithAmount } from './CakeIngredient';
 import { Optional } from 'sequelize';
 
 interface CakeAttributes {
@@ -22,8 +22,12 @@ interface CakeAttributes {
 
 interface CakeCreationAttributes extends Optional<CakeAttributes, 'id'> {}
 
-export interface CakeCreationAttributesWithIngredients extends CakeCreationAttributes {
-  ingredients: CakeIngredient[];
+export interface CakeWithProducts extends CakeAttributes {
+  products: ProductWithAmount[];
+}
+
+export interface CakeWithProductsAndNetPrice extends CakeWithProducts {
+  netPrice: number;
 }
 
 @DefaultScope(() => ({
@@ -35,8 +39,9 @@ export interface CakeCreationAttributesWithIngredients extends CakeCreationAttri
     include: [
       {
         model: Product,
+        as: 'products',
         attributes: ['name', 'price'],
-        through: { attributes: ['amount'] },
+        through: { as: 'ingredient', attributes: ['amount'] },
       },
     ],
   },

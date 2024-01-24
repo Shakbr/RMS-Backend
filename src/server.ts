@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 import 'reflect-metadata';
 import { CONFIG_TYPES } from './types/config';
-import { container } from '../inversify.config';
+import { container } from '@/configs/inversify.config';
 import { IDatabaseInitializer } from './interfaces/database/IDatabaseInitializer';
 import { IExpressConfig } from './interfaces/configs/IExpressConfig';
 import { DATABASE_TYPES } from './types/database';

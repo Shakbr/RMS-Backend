@@ -1,13 +1,13 @@
 import { Container } from 'inversify';
 
 // Types
-import { CONTROLLER_TYPES } from './src/types/controllers';
-import { CONFIG_TYPES } from './src/types/config';
-import { ROUTE_TYPES } from './src/types/routes';
-import { UserRouter } from './src/routes/UserRouter';
-import { SERVICE_TYPES } from './src/types/services';
-import { HELPER_TYPES } from './src/types/helpers';
-import { MIDDLEWARE_TYPES } from './src/types/middlewares';
+import { CONTROLLER_TYPES } from '@/types/controllers';
+import { CONFIG_TYPES } from '@/types/config';
+import { ROUTE_TYPES } from '@/types/routes';
+import { UserRouter } from '@/routes/UserRouter';
+import { SERVICE_TYPES } from '@/types/services';
+import { HELPER_TYPES } from '@/types/helpers';
+import { MIDDLEWARE_TYPES } from '@/types/middlewares';
 import { DATABASE_TYPES } from '@/types/database';
 import { VALIDATOR_TYPES } from '@/types/validations';
 
@@ -34,17 +34,18 @@ import { IWaybillController } from '@/interfaces/controllers/IWaybillController'
 import { IProductController } from '@/interfaces/controllers/IProductController';
 import { ICakeController } from '@/interfaces/controllers/ICakeController';
 import { ICakeService } from '@/interfaces/services/ICakeService';
+import { IAuthHelper } from '@/interfaces/helpers/IAuthHelper';
 
 // Implementations
-import { UserController } from './src/controllers/UserController';
-import { UserService } from './src/services/UserService';
-import { AsyncHandlerHelper } from './src/helpers/AsyncHandlerHelper';
-import { AuthMiddleware } from './src/middlewares/AuthMiddleware';
+import { UserController } from '@/controllers/UserController';
+import { UserService } from '@/services/UserService';
+import { AsyncHandlerHelper } from '@/helpers/AsyncHandlerHelper';
+import { AuthMiddleware } from '@/middlewares/AuthMiddleware';
 import { ErrorHandlerMIddleware } from '@/middlewares/ErrorHandlerMiddleware';
 import { MainRouter } from '@/routes/MainRouter';
 import { DatabaseConfig } from '@/configs/DatabaseConfig';
 import { DatabaseInitializer } from '@/database/DatabaseInitializer';
-import { ExpressConfig } from './src/configs/ExpressConfig';
+import { ExpressConfig } from '@/configs/ExpressConfig';
 import { UserValidator } from '@/validators/UserValidator';
 import { ValidationErrorHandlerMiddleware } from '@/middlewares/ValidationErrorHandlerMiddleware';
 import { DatabaseHelper } from '@/helpers/DatabaseHelper';
@@ -63,6 +64,8 @@ import { ProductController } from '@/controllers/ProductController';
 import { CakeController } from '@/controllers/CakeController';
 import { CakeRouter } from '@/routes/CakeRouter';
 import { CakeService } from '@/services/CakeService';
+import { ProductRouter } from '@/routes/ProductRouter';
+import { AuthHelper } from '@/helpers/AuthHelper';
 
 const container = new Container();
 
@@ -77,6 +80,7 @@ container.bind<IDatabaseInitializer>(DATABASE_TYPES.DatabaseInitializer).to(Data
 container.bind<IRouter>(ROUTE_TYPES.MainRouter).to(MainRouter);
 container.bind<IRouter>(ROUTE_TYPES.UserRouter).to(UserRouter);
 container.bind<IRouter>(ROUTE_TYPES.CompanyRouter).to(CompanyRouter);
+container.bind<IRouter>(ROUTE_TYPES.ProductRouter).to(ProductRouter);
 container.bind<IRouter>(ROUTE_TYPES.WaybillRouter).to(WaybillRouter);
 container.bind<IRouter>(ROUTE_TYPES.CakeRouter).to(CakeRouter);
 
@@ -107,6 +111,7 @@ container.bind<IAsyncHandlerHelper>(HELPER_TYPES.AsyncHandlerHelper).to(AsyncHan
 container.bind<IDatabaseHelper>(HELPER_TYPES.DatabaseHelper).to(DatabaseHelper);
 container.bind<IWaybillHelper>(HELPER_TYPES.WaybillHelper).to(WaybillHelper);
 container.bind<ISoapHelper>(HELPER_TYPES.SoapHelper).to(SoapHelper);
+container.bind<IAuthHelper>(HELPER_TYPES.AuthHelper).to(AuthHelper);
 
 // Validators
 container.bind<IUserValidator>(VALIDATOR_TYPES.UserValidator).to(UserValidator);
